@@ -1,0 +1,15 @@
+<script src="lib/jszip.js"></script>
+<script type="module">
+import * as WadJS from './src/wad.js';
+
+// Load shareware files
+WadJS.deice('data/doom19s.zip', 'DOOMS_19').then(files => {
+  let wadfile = new WadJS.WadFile();
+  // Parse the WAD file
+  wadfile.parse(files['DOOM1.WAD']).then(wad => {
+    // Load the map
+    var map = wad.getMap('E1M1');
+    console.log('Loaded map E1M1', map);
+  });
+});
+</script>
