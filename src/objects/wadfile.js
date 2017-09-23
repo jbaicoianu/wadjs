@@ -1,7 +1,11 @@
 import * as WadJS from '../wad.js';
 
+/**
+ * Class representing a WAD file
+ */
+
 export class WadFile {
-  constructor(fname) {
+  constructor(url) {
     this.lumps = [];
     this.lumpmap = {};
     this.palettes = [];
@@ -11,15 +15,20 @@ export class WadFile {
       IWAD: 0x44415749,
       PWAD: 0x44415750
     };
-    if (fname) {
-      this.load(fname);
+    if (url) {
+      this.load(url);
     }
   }
 
-  load(fname) {
+  /**
+   * Load a WAD file from the specified URL
+   * @param {string} url - URL of wad file
+   * @return {promise} A promise which resolves with the newly-loaded WAD file
+   */
+  load(url) {
     return new Promise((resolve, reject) => {
-      fetch(fname).then((response) => {
-        console.log('Loading wad:', fname);
+      fetch(url).then((response) => {
+        console.log('Loading wad:', url);
         response.arrayBuffer().then((data) => {
           this.parse(data).then(resolve, reject);
         });
@@ -27,11 +36,66 @@ export class WadFile {
     });
   }
 
+  /**
+   * Parse binary WAD data into usable objects
+   * @param {ArrayBuffer|Uint8Array} Raw bytes
+   * @param {integer} [offset] - byte offset to start at
+   */
+  parse(data, offset) {
+    return new Promise((resolve, reject) => {
+      if (!offset) offset = 0;
+      if (data instanceof Uint8Array) data = data.buffer;
+      console.log('Parsing...', data);
+      var wadtype = WadJS.readUint32(data, offset);
+      if (wadtype == this.ids.IWAD) {
+        this.iwad = true;
+      }
+
+      var numlumps = WadJS.readUint32(data, offset + 4);
+      var lumpoffsets = WadJS.readUint32(data, offset + 8);
+
+      if (offset + lumpoffsets + (numlumps * 16) > data.length) {
+        console.error("WAD.LoadFromData Error: Invalid lump info chunk.");
+        return;
+      }
+      for (var i = 0; i < numlumps; i++) {
+        var lump = new WadJS.Lump();
+        var idx = offset + lumpoffsets + (i * 16);
+        lump.read(data,
+                  WadJS.readUint32(data, idx),
+                  WadJS.readUint32(data, idx + 4),
+                  WadJS.readString(data, idx + 8, 8),
+                  offset);
+        //this.lumps[lump.name] = lump;
+        this.lumps.push(lump);
+        this.lumpmap[lump.name] = this.lumps.length-1; // FIXME - many lumps use non-unique names, so we're clobbering indices here
+      }
+
+      // TODO - one day we might want to detect Heretic/Hexen/Strife support, too
+      if (this.lumpmap['E1M1']) {
+        this.version = 'doom1';
+      } else if (this.lumpmap['MAP01']) {
+        this.version = 'doom2';
+      }
+      console.log('Loaded ' + this.version + ' WAD data', this);
+      resolve(this);
+    });
+  }
+
+  /**
+   * Get the data for a specified map within this WAD file
+   * @param {string} mapname - name of map to load (eg, E1M1 or MAP01)
+   * @return {WadJS.Map} Map object with all level data
+   */
   getMap(mapname) {
     var map = new WadJS.Map(this, mapname);
     return map;
   }
 
+  /**
+   * Get all texture patches included in this WAD file
+   * @return {array} List of PatchImage objects
+   */
   getPatches() {
     if (!this.patches) {
       this.patches = [];
@@ -61,6 +125,10 @@ export class WadFile {
     return this.patches;
   }
 
+  /**
+   * Get all textures included in this WAD file
+   * @return {object} Map of Texture objects, keyed by texture name
+   */
   getTextures() {
     var pnames = this.lumps[this.lumpmap['PNAMES']],
         texture1 = this.getTextureList('TEXTURE1'),
@@ -98,6 +166,12 @@ export class WadFile {
     this.textures = texturemap;
     return texturemap;
   }
+
+  /**
+   * Get a specific texture from this WAD file
+   * @param {string} texturename - name of texture to retrieve
+   * @return {WadJS.Texture} Texture object
+   */
   getTexture(texturename) {
     if (!this.textures) {
       this.textures = this.getTextures();
@@ -105,6 +179,11 @@ export class WadFile {
     return this.textures[texturename.toLowerCase()];
   }
 
+  /**
+   * Get a TextureList object from the raw Lump data
+   * @param {string} lumpname - name of lump which contains the data
+   * @return {WadJS.TextureList} TextureList object
+   */
   getTextureList(lumpname) {
     var texlump = this.lumps[this.lumpmap[lumpname]];
     var texlist = new WadJS.TextureList();
@@ -116,6 +195,10 @@ export class WadFile {
     return texlist;
   }
 
+  /**
+   * Get all sprites included in this WAD file
+   * @return {object} Map of Sprite objects, keyed by sprite name
+   */
   getSprites() {
     if (!this.sprites) {
       this.sprites = {};
@@ -150,15 +233,31 @@ export class WadFile {
     }
     return this.sprites;
   }
+
+  /**
+   * Get a specific sprite from this WAD file
+   * @param {string} spritename - name of sprite to retrieve
+   * @return {WadJS.Sprite} Sprite object
+   */
   getSprite(spritename) {
     if (!this.sprites) this.getSprites();
     return this.sprites[spritename]; // TODO - maybe return a default if sprite name isn't found?
   }
 
+  /**
+   * Get a Lump with the specified name
+   * @param {string} lumpname - name of lump to retrieve
+   * @return {WadJS.Lump} Lump object
+   */
   getLump(lumpname) {
     return this.lumps[this.lumpmap[lumpname]];
   }
 
+  /**
+   * Get the specified texture palette from the WAD
+   * @param {integer} paletteid - index of palette to retrieve
+   * @return {WadJS.Palette} Palette object
+   */
   getPalette(paletteid) {
     if (!this.palettes[paletteid]) {
       var palette = new WadJS.Palette();
@@ -168,6 +267,10 @@ export class WadFile {
     return this.palettes[paletteid];
   }
 
+  /**
+   * Get all sounds included in this WAD file
+   * @return {object} Map of Sound objects, keyed by sound name
+   */
   getSounds() {
     var sounds = {};
     for (var k in this.lumpmap) {
@@ -178,49 +281,12 @@ export class WadFile {
     return sounds;
   }
 
-  parse(data, offset) {
-console.log('the data', data);
-    return new Promise((resolve, reject) => {
-      if (!offset) offset = 0;
-      if (data instanceof Uint8Array) data = data.buffer;
-      console.log('Parsing...', data);
-      var wadtype = WadJS.readUint32(data, offset);
-      if (wadtype == this.ids.IWAD) {
-        this.iwad = true;
-      }
-
-      var numlumps = WadJS.readUint32(data, offset + 4);
-      var lumpoffsets = WadJS.readUint32(data, offset + 8);
-
-      if (offset + lumpoffsets + (numlumps * 16) > data.length) {
-        console.error("WAD.LoadFromData Error: Invalid lump info chunk.");
-        return;
-      }
-      for (var i = 0; i < numlumps; i++) {
-        var lump = new WadJS.Lump();
-        var idx = offset + lumpoffsets + (i * 16);
-        
-        lump.read(data, 
-                  WadJS.readUint32(data, idx),
-                  WadJS.readUint32(data, idx + 4),
-                  WadJS.readString(data, idx + 8, 8),
-                  offset);
-        //this.lumps[lump.name] = lump;
-        this.lumps.push(lump);
-        this.lumpmap[lump.name] = this.lumps.length-1; // FIXME - many lumps use non-unique names, so we're clobbering indices here
-      }
-
-      // TODO - one day we might want to detect Heretic/Hexen/Strife support, too
-      if (this.lumpmap['E1M1']) {
-        this.version = 'doom1';
-      } else if (this.lumpmap['MAP01']) {
-        this.version = 'doom2';
-      }
-      console.log('Loaded ' + this.version + ' WAD data', this);
-      resolve(this);
-    });
-  }
-
+  /**
+   * Parse a sound from binary data into unsigned float PCM data
+   * @param {WadJS.Lump} Lump containing binary data
+   * @return {object} Object representing sound data, rate, and samples
+   * @todo This should really return a WadJS.Sound object (which doesn't exist yet)
+   */
   parseSound(sndlump) {
     var samplerate = WadJS.readUint16(sndlump.bytes, 2);
     var numsamples = WadJS.readUint16(sndlump.bytes, 4);
@@ -239,10 +305,18 @@ console.log('the data', data);
     };
   }
 
+  /**
+   * Utility function to determine how far a point is from a line
+   * @todo Move this into a separate module
+   */
   static pointDistanceFromLine(px, py, lx, ly, dx, dy) {
     var d = (px - lx) * dy - (py - ly) * dx;
     return d;
   }
+  /**
+   * Utility function to determine if a point is on a line
+   * @todo Move this into a separate module, and fill in the logic
+   */
   static pointIsOnLine(px, py, lx, ly, dx, dy) {
     return false;
   }
