@@ -1,3 +1,10 @@
+/**
+ * Load the specified installer file and extract its data
+ * @param {string} url - location of install file
+ * @param {string} resourcename - name of inner resource chunks
+ * @param {array} [innerfiles] - list of filenames to return
+ * @returns {Promise} promise that resolves with the extracted files
+ */
 export function deice (url, resourcename, innerfiles) {
   // DEICE.EXE was a tool id Software used to distribute their games
   // It contained a number of data files, numbered 1 through n, which

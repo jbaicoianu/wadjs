@@ -1,3 +1,6 @@
+/**
+ * Class representing the geometry associated with a given texture
+ */
 export class MapTextureGroup {
   constructor(texture) {
     this.vertices = [];
@@ -6,6 +9,19 @@ export class MapTextureGroup {
     this.colors = [];
     this.texture = texture;
   }
+  /**
+   * Generate a textured quad to add to this group
+   * @param {WadJS.Vector} v1 - 
+   * @param {WadJS.Vector} v2 - 
+   * @param {integer} floorheight - 
+   * @param {integer} ceilingheight - 
+   * @param {WadJS.Linedef} linedef - 
+   * @param {WadJS.Sidedef} side - 
+   * @param {WadJS.Sector} sector1 - 
+   * @param {WadJS.Sector} sector2 - 
+   * @param {boolean} isLower - 
+   * @param {boolean} isUpper - 
+   */
   addQuad(v1, v2, floorheight, ceilingheight, linedef, side, sector1, sector2, isLower, isUpper) {
     var vertexOffset = this.vertices.length / 3;
 
@@ -29,6 +45,12 @@ export class MapTextureGroup {
       this.colors.push(sector1.lightlevel / 255, sector1.lightlevel / 255, sector1.lightlevel / 255);
     }
   }
+  /**
+   * Add an arbitrarily-sized polygon to this group
+   * @param {array} vertices - 
+   * @param {array} faces - 
+   * @param {WadJS.Sector} sector - 
+   */
   add(vertices, faces, sector) {
     var lightlevel = sector.lightlevel / 255;
     var vertexoffset = this.vertices.length / 3;
@@ -48,6 +70,10 @@ export class MapTextureGroup {
     }
     return newfaces;
   }
+  /**
+   * Get the buffer data needed to render this group
+   * @returns {object}
+   */
   getBuffers() {
     return {
       index: new Int32Array(this.faces),
