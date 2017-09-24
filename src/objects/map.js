@@ -1,5 +1,8 @@
 import * as WadJS from '../wad.js';
 
+/**
+ * Class representing a Map
+ */
 export class Map {
   constructor(wad, name) {
     this.things = [];
@@ -29,6 +32,11 @@ export class Map {
     }
   }
 
+  /**
+   * Load the specified map from the given wad
+   * @param {WadJS.WadFile} wad - WAD file
+   * @param {string} name - map name
+   */
   load(wad, name) {
     var index = wad.lumpmap[name];
     var lumps = wad.lumps;
@@ -46,6 +54,12 @@ export class Map {
     // TODO - read optional REJECT and BLOCKMAP lumps
   }
 
+  /**
+   * Read a specific lump and create the proper objects from it
+   * @param {array} list - list to append these objects to
+   * @param {WadJS.Lump} lump - Lump to read from
+   * @param {string} name - name of elements to read
+   */
   readLump(list, lump, name) {
     if (this.classmap[name]) {
       var index = 0;
@@ -60,6 +74,10 @@ export class Map {
     }
   }
 
+  /**
+   * Build 3D geometry out of this map's data
+   * @returns {object} map of texturenames => geometry
+   */
   getGeometry() {
     var vertices = [],
         faces = [];
@@ -148,10 +166,19 @@ export class Map {
     return geometries;
   }
 
+  /**
+   * Get a map of linedefs by sector
+   * @returns {object} map of sectorid => linedefs
+   */
   getSectorMap() {
     return this.sectormap;
   }
 
+  /**
+   * Get a MapTextureGroup for the specified texture. Create a new one if it doesn't already exist.
+   * @param {string} texturename - texture name
+   * @returns {WadJS.MapTextureGroup} map texture group
+   */
   getTextureGroup(texturename) {
     if (!this.texturegroups[texturename]) {
       this.texturegroups[texturename] = new WadJS.MapTextureGroup(this.wad.getTexture(texturename));
@@ -159,9 +186,19 @@ export class Map {
     return this.texturegroups[texturename];
   }
 
+  /**
+   * Get a list of things in this map
+   * @returns {array} list of things
+   */
   getThings() {
     return this.things;
   }
+
+  /**
+   * Get a list of things in this map of the specified type
+   * @param {string} type - thing type
+   * @returns {array} list of things
+   */
   getThingsByType(type) {
     var things = [];
     if (this.things) {
@@ -174,10 +211,23 @@ export class Map {
     return things;
   }
 
+  /**
+   * Get the floor height at the specified position
+   * @param {integer} x - x position
+   * @param {integer} y - y position
+   * @returns {integer} floor height
+   */
   getHeight(x, y) {
     var sector = this.getSectorAt(x, y);
     return sector ? sector.floorheight : Infinity;
   }
+
+  /**
+   * Get the subsector at the specified position
+   * @param {integer} x - x position
+   * @param {integer} y - y position
+   * @returns {WadJS.Subsector} subsector
+   */
   getSubsectorAt(x, y) {
     var node = this.nodes[this.nodes.length - 1];
     var ssectorid, nextnodeid;
@@ -199,9 +249,15 @@ export class Map {
         node = this.getNode(nextnodeid);
       }
     }
-//console.log(ssectorid, nextnodeid);
     return this.ssectors[ssectorid];
   }
+
+  /**
+   * Get the sector at the specified position
+   * @param {integer} x - x position
+   * @param {integer} y - y position
+   * @returns {WadJS.Sector} sector
+   */
   getSectorAt(x, y) {
     var ssector = this.getSubsectorAt(x, y);
     if (!ssector) {
@@ -213,6 +269,14 @@ export class Map {
     var side = this.getSidedef(seg.side ? linedef.side2 : linedef.side1);
     return this.getSector(side.sector);
   }
+
+  /**
+   * Get all linedef intersections along the specified direction
+   * @param {Vertex} pos - x/y position
+   * @param {Vertex} dir - x/y direction
+   * @param {integer} len - length of vector to check
+   * @returns {array} list of intersections
+   */
   getIntersections(pos, dir, len) {
     if (len === undefined) len = 5000;
 //console.log('getIntersections', pos, dir, len);
@@ -228,7 +292,6 @@ export class Map {
         if (intersectionpoint) {
           // FIXME - should take into account height!
           dist = Math.sqrt(Math.pow(pos.x - intersectionpoint.x, 2) + Math.pow(pos.y - intersectionpoint.y, 2));
-//console.log(dist, len);
           if (dist <= len) {
             intersections.push([seg, intersectionpoint, dist]);
             hit = true;
@@ -245,7 +308,6 @@ export class Map {
                 intersections.push.apply(intersections, blurf);
               }
 */
-console.log('traverse', dist, len);
 /*
               for (var j = 0; j < this.segs.length; j++) {
                 var flipseg = this.segs[j];
@@ -264,6 +326,14 @@ console.log('traverse', dist, len);
     //}
     return intersections;
   }
+
+  /**
+   * Get the point at which the specified line crosses the specified segment
+   * @param {WadJS.Segment} seg - line segment
+   * @param {Vertex} pos - x/y position
+   * @param {Vertex} dir - x/y direction
+   * @returns {Vertex|null} intersection point
+   */
   getIntersectionPoint(seg, pos, dir) {
     var p = new WadJS.Vertex(pos.x, pos.y),
         q = this.getVertex(seg.v1),
@@ -289,13 +359,55 @@ console.log('traverse', dist, len);
     return null;
   }
 
+
+  /**
+   * Get the specified entity from the specified list
+   * @param {array} list - list of map entities
+   * @param {integer} id - entity ID
+   * @returns {object|null} entity
+   */
   getEntity(list, id) { return (id < 0 || id > list.length ? null : list[id]); }
+
+  /**
+   * Get the specified Linedef
+   * @param {integer} id - linedef ID
+   * @returns {WadJS.Linedef|null} linedef
+   */
   getLinedef(id) { return this.getEntity(this.linedefs, id); }
+
+  /**
+   * Get the specified Sidedef
+   * @param {integer} id - Sidedef ID
+   * @returns {WadJS.Sidedef|null} Sidedef
+   */
   getSidedef(id) { return this.getEntity(this.sidedefs, id); }
+
+  /**
+   * Get the specified Sector
+   * @param {integer} id - Sector ID
+   * @returns {WadJS.Sector|null} Sector
+   */
   getSector(id) { return this.getEntity(this.sectors, id); }
+
+  /**
+   * Get the specified Vertex
+   * @param {integer} id - Vertex ID
+   * @returns {WadJS.Vertex|null} Vertex
+   */
   getVertex(id) { return this.getEntity(this.vertexes, id); }
+
+  /**
+   * Get the specified Node
+   * @param {integer} id - Node ID
+   * @returns {WadJS.Node|null} Node
+   */
   getNode(id) { return this.getEntity(this.nodes, id); }
 
+  /**
+   * Get all sidedefs for a given sector
+   * @param {integer} sectorid - Sector ID
+   * @returns {array} List of Sidedef objects
+   */
   getSidedefsBySector(sectorid) {
     var sidedefs = [];
     for (var i = 0; i < this.sidedefs.length; i++) {
@@ -305,6 +417,12 @@ console.log('traverse', dist, len);
     }
     return sidedefs;
   }
+
+  /**
+   * Get all neighboring sectors to the specified sector
+   * @param {integer} sectorid - Sector ID
+   * @returns {array} List of Sector objects
+   */
   getAdjacentSectors(sectorid) {
     if (sectorid instanceof WadJS.Sector) {
       sectorid = this.sectors.indexOf(sectorid);
@@ -321,6 +439,11 @@ console.log('traverse', dist, len);
     return sectors;
   }
 
+  /**
+   * Get a list of sectors with the given tag
+   * @param {integer} tag - sector tag
+   * @returns {array} List of Sector objects
+   */
   getSectorsByTag(tag) {
     var sectors = [];
     for (var i = 0; i < this.sectors.length; i++) {
@@ -330,6 +453,12 @@ console.log('traverse', dist, len);
     }
     return sectors;
   }
+
+  /**
+   * Get Subsector to which this Segment belongs
+   * @param {integer} segid - Segment ID
+   * @returns {WadJS.Subsector|null} Subsector
+   */
   getSubsectorBySegmentID(segid) {
     for (var i = 0; i < this.ssectors.length; i++) {
       var ssector = this.ssectors[i];

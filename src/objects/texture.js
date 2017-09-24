@@ -1,5 +1,8 @@
 import * as WadJS from '../wad.js';
 
+/**
+ * Class representing a Texture
+ */
 export class Texture {
   constructor() {
     this.name = '';
@@ -16,6 +19,12 @@ export class Texture {
     this.potwidth = 0;
     this.potheight = 0;
   }
+
+  /**
+   * Read binary data from the given position
+   * @param {ArrayBuffer} data - binary data
+   * @param {integer} pos - position to read from
+   */
   read(data, pos) {
     this.name = WadJS.readString(data, pos, 8);
     this.flags = WadJS.readUint16(data, pos + 8);
@@ -34,6 +43,12 @@ export class Texture {
     this.potwidth = this.getNextPOT(this.width);
     this.potheight = this.getNextPOT(this.height);
   }
+
+  /**
+   * Compose a texture out of its various Patches
+   * @param {object} patches - map of all Patch objects contained in the WAD
+   * @returns {HTMLCanvasElement} canvas element with the composed texture data
+   */
   loadTexture(patches) {
     if (!this.canvas) {
       var canvas = document.createElement('canvas');
@@ -73,6 +88,10 @@ export class Texture {
     }
     return this.canvas;
   }
+  /**
+   * Get this texture in a power-of-two size
+   * @returns {HTMLCanvasElement} canvas element with the texture data
+   */
   getPOT() {
     var orig = this.canvas;
     var newwidth = this.getNextPOT(orig.width),
@@ -89,6 +108,11 @@ export class Texture {
     }
     return canvas;
   }
+  /**
+   * Get the next largest power-of-two size that will hold this texture
+   * @param {integer} x - width or height
+   * @returns {integer} next power-of-two size
+   */
   getNextPOT(x) {
     return Math.pow(2, Math.ceil(Math.log(x) / Math.log(2)));
   }

@@ -1,5 +1,9 @@
 import * as WadJS from '../wad.js';
 
+/**
+ * Class representing a patch, containing partial texture data
+ * https://zdoom.org/wiki/Patch
+ */
 export class Patch {
   constructor() {
     this.originx = 0;
@@ -8,6 +12,11 @@ export class Patch {
     this.stepdir = 0;
     this.colormap = 0;
   }
+  /**
+   * Read binary data from the given position
+   * @param {ArrayBuffer} data - binary data
+   * @param {integer} pos - position to read from
+   */
   read(data, pos) {
     this.originx = WadJS.readInt16(data, pos);
     this.originy = WadJS.readInt16(data, pos + 2);
@@ -17,6 +26,10 @@ export class Patch {
   }
 }
 
+/**
+ * Class representing a patch's image data
+ * https://zdoom.org/wiki/Patch
+ */
 export class PatchImage {
   constructor(id) {
     this.id = id;
@@ -30,6 +43,11 @@ export class PatchImage {
 
     this.canvas = false;
   }
+  /**
+   * Read binary data from the given position
+   * @param {ArrayBuffer} data - binary data
+   * @param {integer} pos - position to read from
+   */
   read(data, pos) {
     if (!pos) pos = 0;
     this.width = WadJS.readUint16(data, pos);
@@ -45,6 +63,12 @@ export class PatchImage {
       this.columns.push(column);
     }
   }
+  /**
+   * Get a canvas populated with this patch's image data
+   * @param {WadJS.Palette} palette - image color palette
+   * @param {boolean} mirrored - flip image horizontally
+   * @returns {HTMLCanvasElement} canvas filled with pixel data
+   */
   getCanvas(palette, mirrored) {
     if (!this.canvas) {
       var canvas = document.createElement('canvas');
@@ -89,11 +113,20 @@ export class PatchImage {
     return this.canvas;
   }
 }
+/**
+ * Class representing one column of a patch's image data
+ * https://zdoom.org/wiki/Patch
+ */
 export class PatchImageColumn {
   constructor(height) {
     this.height = height;
     this.pixels = new Array(height)
   }
+  /**
+   * Read binary data from the given position
+   * @param {ArrayBuffer} data - binary data
+   * @param {integer} pos - position to read from
+   */
   read(data, pos) {
     if (!pos) pos = 0;
     var spanoffset = 0;

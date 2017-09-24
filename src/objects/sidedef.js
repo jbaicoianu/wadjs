@@ -1,5 +1,9 @@
 import * as WadJS from '../wad.js';
 
+/**
+ * Class representing a Sidedef
+ * https://zdoom.org/wiki/Sidedef
+ */
 export class Sidedef {
   constructor(map) {
     this.map = map;
@@ -19,6 +23,12 @@ export class Sidedef {
       bottom: null
     };
   }
+
+  /**
+   * Read binary data from the given position
+   * @param {ArrayBuffer} data - binary data
+   * @param {integer} pos - position to read from
+   */
   read(data, pos) {
     this.offsetx = WadJS.readInt16(data, pos);
     this.offsety = WadJS.readInt16(data, pos + 2);
@@ -27,20 +37,46 @@ export class Sidedef {
     this.midtexture = WadJS.readString(data, pos + 20, 8);
     this.sector = WadJS.readInt16(data, pos + 28);
   }
+
+  /**
+   * Get the byte size of this object
+   * @returns {integer} number of bytes
+   */
   getByteSize() { return 30; }
 
+  /**
+   * Add a textured quad to this Segment object. Quads represent either bottom, middle, or top wall sections
+   * @param {string} type - wall section name ('bottom', 'middle', 'top')
+   * @param {array} verts list of vertices which make up this quad
+   */
   addQuad(type, verts) {
     this.quads[type] = verts;
   }
 
+  /**
+   * Associate this Sidedef with the Sidedef on the opposite side of the Linedef
+   * @param {WadJS.Sidedef} sidedef - opposing side
+   */
   setFlipside(sidedef) {
     this.flipside = sidedef;
   }
 
+  /**
+   * Associate this Sidedef with its Linedef
+   * @param {WadJS.Linedef} linedef - the line to which this side belongs
+   */
   setLinedef(linedef) {
     this.linedef = linedef;
   }
 
+  /**
+   * Get the UVs for a given wall section
+   * @param {string} type - wall section name ('bottom', 'middle', 'top')
+   * @param {integer} floorheight - height of floor
+   * @param {integer} ceilingheight - height of ceiling
+   * @param {WadJS.Texture|WadJS.Flat|string} texture - texture associated with this section
+   * @returns {array} UVs associated with this section
+   */
   getUVs(type, floorheight, ceilingheight, texture) {
     var linedef = this.linedef;
 

@@ -1,5 +1,9 @@
 import * as WadJS from '../wad.js';
 
+/**
+ * Class representing a line definition
+ * https://zdoom.org/wiki/Linedef
+ */
 export class Linedef {
   constructor(map) {
     this.map = map;
@@ -11,6 +15,11 @@ export class Linedef {
     this.side1 = 0;
     this.side2 = 0;
   }
+  /**
+   * Read binary data from the given position
+   * @param {ArrayBuffer} data - binary data
+   * @param {integer} pos - position to read from
+   */
   read(data, pos) {
     this.v1 = WadJS.readUint16(data, pos);
     this.v2 = WadJS.readUint16(data, pos + 2);

@@ -1,5 +1,9 @@
 import * as WadJS from '../wad.js';
 
+/**
+ * Class representing a BSP Node
+ * https://zdoom.org/wiki/Node
+ */
 export class Node {
   constructor(map) {
     this.map = map;
@@ -12,6 +16,11 @@ export class Node {
     this.leftChild = 0;
     this.rightChild = 0;
   }
+  /**
+   * Read binary data from the given position
+   * @param {ArrayBuffer} data - binary data
+   * @param {integer} pos - position to read from
+   */
   read(data, pos) {
     this.x = WadJS.readInt16(data, pos);
     this.y = WadJS.readInt16(data, pos + 2);

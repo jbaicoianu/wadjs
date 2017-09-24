@@ -1,5 +1,9 @@
 import * as WadJS from '../wad.js';
 
+/**
+ * Class representing a Thing
+ * https://zdoom.org/wiki/Thing
+ */
 export class Thing {
   constructor(map) {
     this.map = map;
@@ -9,6 +13,11 @@ export class Thing {
     this.type = 0;
     this.options = 0;
   }
+  /**
+   * Read binary data from the given position
+   * @param {ArrayBuffer} data - binary data
+   * @param {integer} pos - position to read from
+   */
   read(data, pos) {
     this.x = WadJS.readInt16(data, pos);
     this.y = WadJS.readInt16(data, pos + 2);
@@ -16,6 +25,11 @@ export class Thing {
     this.type = WadJS.readInt16(data, pos + 6);
     this.options = WadJS.readInt16(data, pos + 8);
   }
+
+  /**
+   * Get the byte size of this object
+   * @returns {integer} number of bytes
+   */
   getByteSize() { return 10; }
 }
 

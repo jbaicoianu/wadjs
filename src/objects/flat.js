@@ -1,5 +1,9 @@
 import * as WadJS from '../wad.js';
 
+/**
+ * Class representing a Flat, which contains texture data normally used for floors and ceilings
+ *  https://zdoom.org/wiki/Flat
+ */
 export class Flat {
   constructor(name) {
     this.name = name;
@@ -8,10 +12,22 @@ export class Flat {
     this.pixels = null;
     this.transparent = false;
   }
+
+  /**
+   * Read binary data from the given position
+   * @param {ArrayBuffer} data - binary data
+   * @param {integer} pos - position to read from
+   */
   read(data, pos) {
     if (!pos) pos = 0;
     this.pixels = WadJS.readUint8Array(data, pos, 4096);
   }
+
+  /**
+   * Parse the raw image data into a canvas, using the specified color palette
+   * @param {WadJS.Palette} palette - color palette to apply to this texture
+   * @returns {HTMLCanvasElement} canvas element with the texture data
+   */
   loadTexture(palette) {
     if (!this.canvas) {
       var canvas = document.createElement('canvas');
@@ -52,6 +68,12 @@ export class Flat {
     }
     return this.canvas;
   }
+
+  /**
+   * Get this texture in a power-of-two size
+   * All Flats are already power of two, so we just return the canvas
+   * @returns {HTMLCanvasElement} canvas element with the texture data
+   */
   getPOT() {
     return this.canvas;
   }
