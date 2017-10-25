@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: texture.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: texture.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import * as WadJS from '../wad.js';
+
+/**
+ * Class representing a Texture
+ */
+export class Texture {
+  constructor() {
+    this.name = '';
+    this.flags = 0;
+    this.scalex = 8;
+    this.scaley = 8;
+    this.width = 0;
+    this.height = 0;
+    this.columndirectory = null;
+    this.patchcount = 0;
+    this.patches = null;
+    this.transparent = false;
+
+    this.potwidth = 0;
+    this.potheight = 0;
+  }
+
+  /**
+   * Read binary data from the given position
+   * @param {ArrayBuffer} data - binary data
+   * @param {integer} pos - position to read from
+   */
+  read(data, pos) {
+    this.name = WadJS.readString(data, pos, 8);
+    this.flags = WadJS.readUint16(data, pos + 8);
+    this.scalex = WadJS.readUint8(data, pos + 10);
+    this.scaley = WadJS.readUint8(data, pos + 11);
+    this.width = WadJS.readUint16(data, pos + 12);
+    this.height = WadJS.readUint16(data, pos + 14);
+    this.columndirectory = WadJS.readUint8Array(data, pos + 16, 4);
+    this.patchcount = WadJS.readUint16(data, pos + 20);
+    this.patches = [];
+    for (var i = 0; i &lt; this.patchcount; i++) {
+      var patch = new WadJS.Patch();
+      patch.read(data, pos + 22 + i * 10);
+      this.patches.push(patch);
+    }
+    this.potwidth = this.getNextPOT(this.width);
+    this.potheight = this.getNextPOT(this.height);
+  }
+
+  /**
+   * Compose a texture out of its various Patches
+   * @param {object} patches - map of all Patch objects contained in the WAD
+   * @returns {HTMLCanvasElement} canvas element with the composed texture data
+   */
+  loadTexture(patches) {
+    if (!this.canvas) {
+      var canvas = document.createElement('canvas');
+      canvas.width = this.width;
+      canvas.height = this.height;
+      var ctx = canvas.getContext('2d');
+
+      for (var j = 0; j &lt; this.patchcount; j++) {
+        var patchimage = patches[this.patches[j].patch];
+        var patch = this.patches[j]; 
+        if (patchimage) {
+          var patchcanvas = patchimage.getCanvas();
+          ctx.drawImage(patchcanvas, patch.originx, patch.originy);
+        }
+      }
+
+      var pixeldata = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      var hasalpha = false;
+      for (var i = 3; i &lt; pixeldata.data.length; i += 4) {
+        if (pixeldata.data[i] != 255) {
+          hasalpha = true;
+          break;
+        }
+      }
+      this.transparent = hasalpha;
+
+/*
+      var div = document.createElement('div');
+      var div2 = document.createElement('div');
+      div.className = 'texture';
+      div.innerHTML = '&lt;h5>' + this.name + '&lt;/h5>';
+      div.appendChild(div2);
+      div2.appendChild(canvas);
+      document.body.appendChild(div);
+*/
+      this.canvas = canvas;
+    }
+    return this.canvas;
+  }
+  /**
+   * Get this texture in a power-of-two size
+   * @returns {HTMLCanvasElement} canvas element with the texture data
+   */
+  getPOT() {
+    var orig = this.canvas;
+    var newwidth = this.getNextPOT(orig.width),
+        newheight = this.getNextPOT(orig.height);
+    var canvas = orig;
+    if (newwidth != orig.width || newheight != orig.height) {
+      canvas = document.createElement('canvas');
+      canvas.width = newwidth;
+      canvas.height = newheight;
+      var ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+
+      ctx.drawImage(orig, 0, 0, newwidth, newheight);
+    }
+    return canvas;
+  }
+  /**
+   * Get the next largest power-of-two size that will hold this texture
+   * @param {integer} x - width or height
+   * @returns {integer} next power-of-two size
+   */
+  getNextPOT(x) {
+    return Math.pow(2, Math.ceil(Math.log(x) / Math.log(2)));
+  }
+}
+
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BoundingBox.html">BoundingBox</a></li><li><a href="Flat.html">Flat</a></li><li><a href="Linedef.html">Linedef</a></li><li><a href="Lump.html">Lump</a></li><li><a href="Map.html">Map</a></li><li><a href="MapTextureGroup.html">MapTextureGroup</a></li><li><a href="Node.html">Node</a></li><li><a href="Palette.html">Palette</a></li><li><a href="Patch.html">Patch</a></li><li><a href="PatchImage.html">PatchImage</a></li><li><a href="PatchImageColumn.html">PatchImageColumn</a></li><li><a href="PatchList.html">PatchList</a></li><li><a href="Sector.html">Sector</a></li><li><a href="Segment.html">Segment</a></li><li><a href="Sidedef.html">Sidedef</a></li><li><a href="Sprite.html">Sprite</a></li><li><a href="Subsector.html">Subsector</a></li><li><a href="Texture.html">Texture</a></li><li><a href="TextureList.html">TextureList</a></li><li><a href="Thing.html">Thing</a></li><li><a href="Vertex.html">Vertex</a></li><li><a href="WadFile.html">WadFile</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sat Sep 23 2017 17:27:01 GMT-0700 (PDT)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

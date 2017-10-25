@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: patch.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: patch.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import * as WadJS from '../wad.js';
+
+/**
+ * Class representing a patch, containing partial texture data
+ * https://zdoom.org/wiki/Patch
+ */
+export class Patch {
+  constructor() {
+    this.originx = 0;
+    this.originy = 0;
+    this.patch = 0;
+    this.stepdir = 0;
+    this.colormap = 0;
+  }
+  /**
+   * Read binary data from the given position
+   * @param {ArrayBuffer} data - binary data
+   * @param {integer} pos - position to read from
+   */
+  read(data, pos) {
+    this.originx = WadJS.readInt16(data, pos);
+    this.originy = WadJS.readInt16(data, pos + 2);
+    this.patch = WadJS.readInt16(data, pos + 4);
+    this.stepdir = WadJS.readInt16(data, pos + 6);
+    this.colormap = WadJS.readInt16(data, pos + 8);
+  }
+}
+
+/**
+ * Class representing a patch's image data
+ * https://zdoom.org/wiki/Patch
+ */
+export class PatchImage {
+  constructor(id) {
+    this.id = id;
+    this.width = 0;
+    this.height = 0;
+    this.offsetx = 0;
+    this.offsety = 0;
+
+    this.columnpointers = null;
+    this.columns = null;
+
+    this.canvas = false;
+  }
+  /**
+   * Read binary data from the given position
+   * @param {ArrayBuffer} data - binary data
+   * @param {integer} pos - position to read from
+   */
+  read(data, pos) {
+    if (!pos) pos = 0;
+    this.width = WadJS.readUint16(data, pos);
+    this.height = WadJS.readUint16(data, pos + 2);
+    this.offsetx = WadJS.readInt16(data, pos + 4);
+    this.offsety = WadJS.readInt16(data, pos + 6);
+    this.columnpointers = WadJS.readUint32Array(data, pos + 8, this.width);
+
+    this.columns = [];
+    for (var x = 0; x &lt; this.width; x++) {
+      var column = new WadJS.PatchImageColumn(this.height);
+      column.read(data, this.columnpointers[x]);
+      this.columns.push(column);
+    }
+  }
+  /**
+   * Get a canvas populated with this patch's image data
+   * @param {WadJS.Palette} palette - image color palette
+   * @param {boolean} mirrored - flip image horizontally
+   * @returns {HTMLCanvasElement} canvas filled with pixel data
+   */
+  getCanvas(palette, mirrored) {
+    if (!this.canvas) {
+      var canvas = document.createElement('canvas');
+      canvas.width = this.width;
+      canvas.height = this.height;
+      var ctx = canvas.getContext('2d');
+      var colors = new Uint8ClampedArray(this.width * this.height * 4);
+      for (var x = 0; x &lt; this.width; x++) {
+        var column = this.columns[(mirrored ? this.width - x - 1 : x)];
+        for (var y = 0; y &lt; column.pixels.length; y++) {
+          var offset = ((y * this.width) + x) * 4;
+          var idx = column.pixels[y];
+          if (idx !== undefined) {
+            var color = palette.getColor(idx);
+            colors[offset] = color[0];
+            colors[offset+1] = color[1];
+            colors[offset+2] = color[2];
+            colors[offset+3] = 255;
+          } else {
+            colors[offset] = 0;
+            colors[offset+1] = 255;
+            colors[offset+2] = 255;
+            colors[offset+3] = 0;
+          }
+        }
+      }
+      var imagedata = new ImageData(colors, this.width, this.height);
+      ctx.putImageData(imagedata, 0, 0);
+      this.canvas = canvas;
+
+/*
+      var div = document.createElement('div');
+      var div2 = document.createElement('div');
+      div.className = 'texture';
+      div.innerHTML = '&lt;h5>' + this.name + '&lt;/h5>';
+      div.appendChild(div2);
+      div2.appendChild(canvas);
+      document.body.appendChild(div);
+*/
+    }
+
+    return this.canvas;
+  }
+}
+/**
+ * Class representing one column of a patch's image data
+ * https://zdoom.org/wiki/Patch
+ */
+export class PatchImageColumn {
+  constructor(height) {
+    this.height = height;
+    this.pixels = new Array(height)
+  }
+  /**
+   * Read binary data from the given position
+   * @param {ArrayBuffer} data - binary data
+   * @param {integer} pos - position to read from
+   */
+  read(data, pos) {
+    if (!pos) pos = 0;
+    var spanoffset = 0;
+var dur = 0;
+    var offset;
+    do {
+      offset = WadJS.readUint8(data, pos + spanoffset);
+      var pixelcount = WadJS.readUint8(data, pos + 1 + spanoffset);
+      var garbage = WadJS.readUint8(data, pos + 2 + spanoffset);
+      var pixels = WadJS.readUint8Array(data, pos + 3 + spanoffset, pixelcount);
+
+      if (offset == 255) {
+        break;
+      }
+
+
+      for (var i = 0; i &lt; pixelcount; i++) {
+        this.pixels[offset + i] = pixels[i];
+      }
+
+      spanoffset += 4 + pixelcount;
+dur++;
+    } while (dur &lt; 256 &amp;&amp; offset != 255);
+  }
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BoundingBox.html">BoundingBox</a></li><li><a href="Flat.html">Flat</a></li><li><a href="Linedef.html">Linedef</a></li><li><a href="Lump.html">Lump</a></li><li><a href="Map.html">Map</a></li><li><a href="MapTextureGroup.html">MapTextureGroup</a></li><li><a href="Node.html">Node</a></li><li><a href="Palette.html">Palette</a></li><li><a href="Patch.html">Patch</a></li><li><a href="PatchImage.html">PatchImage</a></li><li><a href="PatchImageColumn.html">PatchImageColumn</a></li><li><a href="PatchList.html">PatchList</a></li><li><a href="Sector.html">Sector</a></li><li><a href="Segment.html">Segment</a></li><li><a href="Sidedef.html">Sidedef</a></li><li><a href="Sprite.html">Sprite</a></li><li><a href="Subsector.html">Subsector</a></li><li><a href="Texture.html">Texture</a></li><li><a href="TextureList.html">TextureList</a></li><li><a href="Thing.html">Thing</a></li><li><a href="Vertex.html">Vertex</a></li><li><a href="WadFile.html">WadFile</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sat Sep 23 2017 17:27:01 GMT-0700 (PDT)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

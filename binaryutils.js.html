@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: binaryutils.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: binaryutils.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Utility functions for working with binary data
+ * @module binaryutils
+ */
+
+/**
+ * Read a signed 8-bit integer (char)
+ * @param {ArrayBuffer} data - binary data
+ * @param {integer} offset - read offset
+ * @returns {integer} Int8
+ */
+export function readInt8(data, offset) {
+  if (!(data instanceof ArrayBuffer)) {
+    offset += data.byteOffset;
+    data = data.buffer;
+  }
+
+  var arr = new Int8Array(data, offset, 1);
+  return arr[0];
+}
+/**
+ * Read an unsigned 8-bit integer (unsigned char)
+ * @param {ArrayBuffer} data - binary data
+ * @param {integer} offset - read offset
+ * @returns {integer} Uint8
+ */
+export function readUint8(data, offset) {
+  if (!(data instanceof ArrayBuffer)) {
+    offset += data.byteOffset;
+    data = data.buffer;
+  }
+
+  var arr = new Uint8Array(data, offset, 1);
+  return arr[0];
+}
+/**
+ * Read an array of unsigned 8-bit integers (unsigned char[])
+ * @param {ArrayBuffer} data - binary data
+ * @param {integer} offset - read offset
+ * @param {integer} count - number of elements in array
+ * @returns {array} Array of Uint8 values
+ */
+export function readUint8Array(data, offset, count) {
+  if (!(data instanceof ArrayBuffer)) {
+    offset += data.byteOffset;
+    data = data.buffer;
+  }
+
+  var arr = new Uint8Array(data, offset, count);
+  return arr;
+}
+/**
+ * Read a signed 16-bit integer (short)
+ * @param {ArrayBuffer} data - binary data
+ * @param {integer} offset - read offset
+ * @returns {integer} Int16
+ */
+export function readInt16(data, offset) {
+  if (!(data instanceof ArrayBuffer)) {
+    offset += data.byteOffset;
+    data = data.buffer;
+  }
+
+  var arr = new Int16Array(data, offset, 1);
+  return arr[0];
+}
+/**
+ * Read a unsigned 16-bit integer (unsigned short)
+ * @param {ArrayBuffer} data - binary data
+ * @param {integer} offset - read offset
+ * @returns {integer} Uint16
+ */
+export function readUint16(data, offset) {
+  if (!(data instanceof ArrayBuffer)) {
+    offset += data.byteOffset;
+    data = data.buffer;
+  }
+
+  var arr = new Uint16Array(data, offset, 1);
+  return arr[0];
+}
+/**
+ * Read an array of unsigned 16-bit integers (unsigned short[])
+ * @param {ArrayBuffer} data - binary data
+ * @param {integer} offset - read offset
+ * @param {integer} count - number of elements in array
+ * @returns {array} Array of Uint16 values
+ */
+export function readUint16Array(data, offset, count) {
+  if (!(data instanceof ArrayBuffer)) {
+    offset += data.byteOffset;
+    data = data.buffer;
+  }
+
+  var arr = new Uint16Array(data, offset, count);
+  return arr;
+}
+/**
+ * Read a signed 32-bit integer (int)
+ * @param {ArrayBuffer} data - binary data
+ * @param {integer} offset - read offset
+ * @returns {integer} Int32
+ */
+export function readInt32(data, offset) {
+  if (!(data instanceof ArrayBuffer)) {
+    offset += data.byteOffset;
+    data = data.buffer;
+  }
+
+  var arr = new Int32Array(data, offset, 1);
+  return arr[0];
+}
+/**
+ * Read an unsigned 32-bit integer (unsigned int)
+ * @param {ArrayBuffer} data - binary data
+ * @param {integer} offset - read offset
+ * @returns {integer} Uint32
+ */
+export function readUint32(data, offset) {
+  if (!(data instanceof ArrayBuffer)) {
+    offset += data.byteOffset;
+    data = data.buffer;
+  }
+
+  var arr = new Uint32Array(data, offset, 1);
+  return arr[0];
+}
+/**
+ * Read an array of signed 32-bit integer (int[])
+ * @param {ArrayBuffer} data - binary data
+ * @param {integer} offset - read offset
+ * @param {integer} count - number of elements in array
+ * @returns {array} Array of Int32 values
+ */
+export function readInt32Array(data, offset, count) {
+  if (!(data instanceof ArrayBuffer)) {
+    offset += data.byteOffset;
+    data = data.buffer;
+  }
+
+  var arr = new Int32Array(data, offset, count);
+  return arr;
+}
+/**
+ * Read an array of unsigned 32-bit integers (unsigned int[])
+ * @param {ArrayBuffer} data - binary data
+ * @param {integer} offset - read offset
+ * @param {integer} count - number of elements in array
+ * @returns {array} Array of Uint32 values
+ */
+export function readUint32Array(data, offset, count) {
+  if (!(data instanceof ArrayBuffer)) {
+    offset += data.byteOffset;
+    data = data.buffer;
+  }
+
+  var arr = new Uint32Array(data, offset, count);
+  return arr;
+}
+/**
+ * Read a string (char*)
+ * @param {ArrayBuffer} data - binary data
+ * @param {integer} offset - read offset
+ * @param {integer} length - max string length
+ * @returns {string} String
+ */
+export function readString(data, offset, length) {
+  if (!(data instanceof ArrayBuffer)) {
+    offset += data.byteOffset;
+    data = data.buffer;
+  }
+
+  if (!length) length = data.byteSize;
+  var arr = new Uint8Array(data, offset),
+      str = '';
+  for (var i = 0; i &lt; length; i++) {
+    var chr = arr[i];
+    if (chr === 0) break;
+    str += String.fromCharCode(chr);
+  }
+  return str;
+}
+/**
+ * Read an array of strings (char*[])
+ * @param {ArrayBuffer} data - binary data
+ * @param {integer} offset - read offset
+ * @param {integer} length - max string length
+ * @param {integer} count - number of strings
+ * @returns {array} Array of strings
+ */
+export function readStringArray(data, offset, length, count) {
+  if (!(data instanceof ArrayBuffer)) {
+    offset += data.byteOffset;
+    data = data.buffer;
+  }
+
+  if (!count) return [];
+
+  if (!length) length = data.byteSize / count;
+  var arr = new Uint8Array(data, offset),
+      strs = [];
+  for (var i = 0; i &lt; count; i++) {
+    var str = '';
+    var offset = i * length;
+    for (var j = 0; j &lt; length &amp;&amp; offset + j &lt; arr.length; j++) {
+      var chr = arr[offset + j];
+      if (chr === 0) break;
+      str += String.fromCharCode(chr);
+    }
+    strs.push(str);
+  }
+  return strs;
+}
+
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-binaryutils.html">binaryutils</a></li></ul><h3>Classes</h3><ul><li><a href="BoundingBox.html">BoundingBox</a></li><li><a href="Flat.html">Flat</a></li><li><a href="Linedef.html">Linedef</a></li><li><a href="Lump.html">Lump</a></li><li><a href="Map.html">Map</a></li><li><a href="MapTextureGroup.html">MapTextureGroup</a></li><li><a href="Node.html">Node</a></li><li><a href="Palette.html">Palette</a></li><li><a href="Patch.html">Patch</a></li><li><a href="PatchImage.html">PatchImage</a></li><li><a href="PatchImageColumn.html">PatchImageColumn</a></li><li><a href="PatchList.html">PatchList</a></li><li><a href="Sector.html">Sector</a></li><li><a href="Segment.html">Segment</a></li><li><a href="Sidedef.html">Sidedef</a></li><li><a href="Sprite.html">Sprite</a></li><li><a href="Subsector.html">Subsector</a></li><li><a href="Texture.html">Texture</a></li><li><a href="TextureList.html">TextureList</a></li><li><a href="Thing.html">Thing</a></li><li><a href="Vertex.html">Vertex</a></li><li><a href="WadFile.html">WadFile</a></li></ul><h3>Global</h3><ul><li><a href="global.html#deice">deice</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sat Sep 23 2017 18:06:08 GMT-0700 (PDT)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
