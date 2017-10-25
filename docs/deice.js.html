@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: deice.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: deice.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Load the specified installer file and extract its data
+ * @param {string} url - location of install file
+ * @param {string} resourcename - name of inner resource chunks
+ * @param {array} [innerfiles] - list of filenames to return
+ * @returns {Promise} promise that resolves with the extracted files
+ */
+export function deice (url, resourcename, innerfiles) {
+  // DEICE.EXE was a tool id Software used to distribute their games
+  // It contained a number of data files, numbered 1 through n, which
+  // were then concatenated together into one big zip
+
+  // Deice.load() requires a URL for the outer zip, and the basename of the 
+  // resource files contained within. It also optionally takes a list
+  // of files to return from the inner datafiles - if this is not specified,
+  // all files are returned
+  
+  return new Promise((resolve, reject) => {
+    fetch(url).then(f => {
+      f.arrayBuffer().then(d => {
+        let bytes = new Uint8Array(d);
+        let zip = new JSZip();
+
+        zip.loadAsync(bytes).then(z => {
+          let files = [];
+          for (let k in zip.files) {
+            let parts = k.split('.');
+            let idx = parseInt(parts[1]) - 1;
+            if (parts[0] == resourcename &amp;&amp; Number.isInteger(idx)) {
+              files[idx] = zip.file(k);
+            }
+          }
+console.log('beh', bytes, files, zip);
+          if (files.length > 0) {
+            let promises = [];
+            for (let i = 0; i &lt; files.length; i++) {
+              promises[i] = files[i].async('uint8array');
+            }
+            Promise.all(promises).then(filedata => {
+              // We've got all the inner resource file data, combine it into one big zip
+              let totalLength = 0,
+                  offset = 0;
+              for (let i = 0; i &lt; filedata.length; i++) {
+                totalLength += filedata[i].length;
+              }
+              let combined = new Uint8Array(totalLength);
+              for (let i = 0; i &lt; filedata.length; i++) {
+                combined.set(filedata[i], offset);
+                offset += filedata[i].length;
+              }
+
+              // Extract that zip
+              let innerzip = new JSZip();
+              innerzip.loadAsync(combined).then(() => {
+                let innerpromises = [],
+                    innerdata = {};
+                if (!innerfiles) innerfiles = Object.keys(innerzip.files);
+                for (let i = 0; i &lt; innerfiles.length; i++) {
+                  let fname = innerfiles[i];
+                  if (innerzip.files[fname]) {
+                    // Asynchronously unzip each file into a Uint8Array
+                    (function(fname) {
+                      innerpromises[i] = innerzip.files[fname].async('uint8array');
+                      innerpromises[i].then(d => innerdata[fname] = d);
+                    })(fname);
+                  }
+                }
+                // Once all files have been unzipped, we can finally return the data
+                Promise.all(innerpromises).then(() => {
+                  resolve(innerdata);
+                });
+              });
+            });
+          }
+        });
+      });
+    });
+  });
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-binaryutils.html">binaryutils</a></li></ul><h3>Classes</h3><ul><li><a href="BoundingBox.html">BoundingBox</a></li><li><a href="Flat.html">Flat</a></li><li><a href="Linedef.html">Linedef</a></li><li><a href="Lump.html">Lump</a></li><li><a href="Map.html">Map</a></li><li><a href="MapTextureGroup.html">MapTextureGroup</a></li><li><a href="Node.html">Node</a></li><li><a href="Palette.html">Palette</a></li><li><a href="Patch.html">Patch</a></li><li><a href="PatchImage.html">PatchImage</a></li><li><a href="PatchImageColumn.html">PatchImageColumn</a></li><li><a href="PatchList.html">PatchList</a></li><li><a href="Sector.html">Sector</a></li><li><a href="Segment.html">Segment</a></li><li><a href="Sidedef.html">Sidedef</a></li><li><a href="Sprite.html">Sprite</a></li><li><a href="Subsector.html">Subsector</a></li><li><a href="Texture.html">Texture</a></li><li><a href="TextureList.html">TextureList</a></li><li><a href="Thing.html">Thing</a></li><li><a href="Vertex.html">Vertex</a></li><li><a href="WadFile.html">WadFile</a></li></ul><h3>Global</h3><ul><li><a href="global.html#deice">deice</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sat Sep 23 2017 18:06:08 GMT-0700 (PDT)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
