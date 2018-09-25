@@ -86,7 +86,7 @@ export class Sidedef {
     var diff = [v2.x - v1.x, v2.y - v1.y];
 
 
-    if (!(texture instanceof WadJS.Texture || texture instanceof JSWad.Flat)) {
+    if (!(texture instanceof WadJS.Texture || texture instanceof WadJS.Flat)) {
       texture = this.map.wad.getTexture(texture);
     }
     var width = texture.width,
