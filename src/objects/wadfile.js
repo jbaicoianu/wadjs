@@ -331,7 +331,7 @@ export class WadFile {
    * Utility function to determine how far a point is from a line
    * @todo Move this into a separate module
    */
-  static pointDistanceFromLine(px, py, lx, ly, dx, dy) {
+  pointDistanceFromLine(px, py, lx, ly, dx, dy) {
     var d = (px - lx) * dy - (py - ly) * dx;
     return d;
   }
@@ -339,7 +339,7 @@ export class WadFile {
    * Utility function to determine if a point is on a line
    * @todo Move this into a separate module, and fill in the logic
    */
-  static pointIsOnLine(px, py, lx, ly, dx, dy) {
+  pointIsOnLine(px, py, lx, ly, dx, dy) {
     return false;
   }
 }
