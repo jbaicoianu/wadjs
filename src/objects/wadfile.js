@@ -28,7 +28,7 @@ export class WadFile {
   load(url) {
     return new Promise((resolve, reject) => {
       fetch(url).then((response) => {
-        console.log('Loading wad:', url);
+        //console.log('Loading wad:', url);
         response.arrayBuffer().then((data) => {
           this.parse(data).then(resolve, reject);
         });
@@ -45,7 +45,7 @@ export class WadFile {
     return new Promise((resolve, reject) => {
       if (!offset) offset = 0;
       if (data instanceof Uint8Array) data = data.buffer;
-      console.log('Parsing...', data);
+      //console.log('Parsing...', data);
       var wadtype = WadJS.readUint32(data, offset);
       if (wadtype == this.ids.IWAD) {
         this.iwad = true;
@@ -77,7 +77,7 @@ export class WadFile {
       } else if (this.lumpmap['MAP01']) {
         this.version = 'doom2';
       }
-      console.log('Loaded ' + this.version + ' WAD data', this);
+      //console.log('Loaded ' + this.version + ' WAD data', this);
       resolve(this);
     });
   }
@@ -118,7 +118,7 @@ export class WadFile {
 
           this.patches[j] = patchimage;
         } else {
-          console.error('ERROR - failed to load patch', patchname);
+          console.warn('WARNING - failed to load patch', patchname);
         }
       }
     }
