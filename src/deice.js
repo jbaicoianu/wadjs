@@ -30,7 +30,6 @@ export function deice (url, resourcename, innerfiles) {
               files[idx] = zip.file(k);
             }
           }
-console.log('beh', bytes, files, zip);
           if (files.length > 0) {
             let promises = [];
             for (let i = 0; i < files.length; i++) {
