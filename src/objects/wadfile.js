@@ -245,6 +245,28 @@ export class WadFile {
   }
 
   /**
+   * Get all HUD-related images
+   * @return {object} Map of PatchImage objects, keyed by image name
+   */
+  getHUDImages() {
+    var imagemap = {};
+    var palette = this.getPalette(0);
+    for (var k in this.lumpmap) {
+      // HUD images start with ST, but ignore the STEP* images
+      if (k[0] == 'S' && k[1] == 'T' && k[2] != 'E') {
+        var lump = this.lumps[this.lumpmap[k]];
+        if (lump.pos && lump.len) {
+          var patchimg = new WadJS.PatchImage(this.lumpmap[k]);
+          patchimg.read(lump.bytes, 0);
+          patchimg.getCanvas(palette);
+          imagemap[k.toLowerCase()] = patchimg;
+        }
+      }
+    }
+    return imagemap;
+  }
+
+  /**
    * Get a Lump with the specified name
    * @param {string} lumpname - name of lump to retrieve
    * @return {WadJS.Lump} Lump object
