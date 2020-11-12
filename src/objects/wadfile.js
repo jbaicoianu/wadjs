@@ -118,7 +118,7 @@ export class WadFile {
 
           this.patches[j] = patchimage;
         } else {
-          console.warn('WARNING - failed to load patch', patchname);
+          console.log('WARNING - failed to load patch', patchname);
         }
       }
     }
@@ -130,41 +130,43 @@ export class WadFile {
    * @return {object} Map of Texture objects, keyed by texture name
    */
   getTextures() {
-    var pnames = this.lumps[this.lumpmap['PNAMES']],
-        texture1 = this.getTextureList('TEXTURE1'),
-        texture2 = this.getTextureList('TEXTURE2'),
-        fstart = this.lumpmap['F_START'],
-        fend = this.lumpmap['F_END'];
+    if (!this.textures) {
+      var pnames = this.lumps[this.lumpmap['PNAMES']],
+          texture1 = this.getTextureList('TEXTURE1'),
+          texture2 = this.getTextureList('TEXTURE2'),
+          fstart = this.lumpmap['F_START'],
+          fend = this.lumpmap['F_END'];
 
 
-    console.log('textures!', texture1, texture2, pnames, fstart, fend); 
+      console.log('textures!', texture1, texture2, pnames, fstart, fend); 
 
-    texture1.loadTextures(this);
-    texture2.loadTextures(this);
+      texture1.loadTextures(this);
+      texture2.loadTextures(this);
 
-    var texturemap = {};
-    for (var i = 0; i < texture1.textures.length; i++) {
-      var tex = texture1.textures[i];
-      texturemap[tex.name.toLowerCase()] = tex;
-    }
-    for (var i = 0; i < texture2.textures.length; i++) {
-      var tex = texture2.textures[i];
-      texturemap[tex.name.toLowerCase()] = tex;
-    }
-
-    var palette = this.getPalette(0);
-    for (var i = fstart + 1; i < fend - 1; i++) {
-      var lump = this.lumps[i];
-      if (lump.pos && lump.len) {
-        var tex = new WadJS.Flat(lump.name);
-        tex.read(lump.bytes);
-        tex.loadTexture(palette);
+      var texturemap = {};
+      for (var i = 0; i < texture1.textures.length; i++) {
+        var tex = texture1.textures[i];
+        texturemap[tex.name.toLowerCase()] = tex;
       }
-      texturemap[tex.name.toLowerCase()] = tex;
+      for (var i = 0; i < texture2.textures.length; i++) {
+        var tex = texture2.textures[i];
+        texturemap[tex.name.toLowerCase()] = tex;
+      }
+
+      var palette = this.getPalette(0);
+      for (var i = fstart + 1; i < fend - 1; i++) {
+        var lump = this.lumps[i];
+        if (lump.pos && lump.len) {
+          var tex = new WadJS.Flat(lump.name);
+          tex.read(lump.bytes);
+          tex.loadTexture(palette);
+        }
+        texturemap[tex.name.toLowerCase()] = tex;
+      }
+      
+      this.textures = texturemap;
     }
-    
-    this.textures = texturemap;
-    return texturemap;
+    return this.textures;
   }
 
   /**
@@ -256,10 +258,14 @@ export class WadFile {
       if (k[0] == 'S' && k[1] == 'T' && k[2] != 'E') {
         var lump = this.lumps[this.lumpmap[k]];
         if (lump.pos && lump.len) {
-          var patchimg = new WadJS.PatchImage(this.lumpmap[k]);
-          patchimg.read(lump.bytes, 0);
-          patchimg.getCanvas(palette);
-          imagemap[k.toLowerCase()] = patchimg;
+          try {
+            var patchimg = new WadJS.PatchImage(this.lumpmap[k]);
+            patchimg.read(lump.bytes, 0);
+            patchimg.getCanvas(palette);
+            imagemap[k.toLowerCase()] = patchimg;
+          } catch (e) {
+            console.log('Failed to load HUD image', k, patchimg);
+          }
         }
       }
     }
@@ -300,6 +306,7 @@ export class WadFile {
         sounds[k] = this.parseSound(this.lumps[this.lumpmap[k]]);
       }
     }
+    this.sounds = sounds;
     return sounds;
   }
 

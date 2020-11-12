@@ -95,6 +95,31 @@ export class Vertex {
   }
 
   /**
+   * Return the dot product between this vertex and another
+   * @param {WadJS.Vertex} v - other vertex
+   * @returns {float} dot product result
+   */
+  dot(v) {
+    return this.x * v.x + this.y * v.y;
+  }
+
+  /**
+   * Return the length of a vertex (vector, really)
+   * @returns {float} length
+   */
+  length() {
+    return Math.sqrt(this.x * this.x + this.y * this.y);
+  }
+
+  /**
+   * Return the distance between to vertexes
+   * @returns {float} distance
+   */
+  distanceTo(v) {
+    return Math.sqrt(Math.pow(this.x - v.x, 2) + Math.pow(this.y - v.y, 2));
+  }
+
+  /**
    * Set the position of this vertex to the position of the specified vertex
    * @param {WadJS.Vertex} v - other vertex
    * @returns {WadJS.Vertex} this vertex
@@ -103,6 +128,13 @@ export class Vertex {
     this.x = v.x;
     this.y = v.y;
     return this;
+  }
+  /**
+   * Allocate a new copy of this vertex
+   * @returns {WadJS.Vertex} a new vertex
+   */
+  clone() {
+    return new Vertex(this.x, this.y);
   }
 }
 

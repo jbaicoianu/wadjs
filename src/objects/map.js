@@ -111,8 +111,12 @@ export class Map {
 
         if (!sectormap[side1.sector]) sectormap[side1.sector] = [];
         if (!sectormap[side2.sector]) sectormap[side2.sector] = [];
-        sectormap[side1.sector].push(linedef);
-        sectormap[side2.sector].push(linedef);
+
+        // Don't add interior linedefs to sectormap
+        if (side1.sector != side2.sector) {
+          sectormap[side1.sector].push(linedef);
+          sectormap[side2.sector].push(linedef);
+        }
 
         var maxfloor = Math.max(sector1.floorheight, sector2.floorheight),
             minceil = Math.min(sector1.ceilingheight, sector2.ceilingheight);
@@ -283,31 +287,33 @@ export class Map {
     var intersections = [];
     var ssector = this.getSubsectorAt(pos.x, pos.y);
     var dist = 0;
-    //while (ssector && dist < len) {
+    var remaining = len;
+    let nextpos = pos;
+    let lastseg = null;
+
+    while (ssector && dist < len) {
       var hit = false;
+      let scaleddir = dir.clone().multiplyScalar(remaining);
       for (var i = 0; i < ssector.numsegs; i++) {
         var seg = this.segs[ssector.firstseg + i];
-        var intersectionpoint = this.getIntersectionPoint(seg, pos, dir.clone().multiplyScalar(len));
+        // Skip the seg that refers to the linedef we just traversed
+        if (lastseg && lastseg.linedef == seg.linedef) continue;
+
+        var intersectionpoint = this.getRayIntersectionPoint(seg, nextpos, scaleddir);
         if (intersectionpoint) {
           // FIXME - should take into account height!
           dist = Math.sqrt(Math.pow(pos.x - intersectionpoint.x, 2) + Math.pow(pos.y - intersectionpoint.y, 2));
           if (dist <= len) {
             intersections.push([seg, intersectionpoint, dist]);
             hit = true;
+            nextpos = new WadJS.Vertex(intersectionpoint.x, intersectionpoint.y);
             var linedef = this.getLinedef(seg.linedef);
             //ssector = this.getSubsector(linedef.direction == 0 ? );
-            if (linedef.side1 == 65535) {
+            if (linedef.side2 == 65535) {
               // one-sided linedefs stop raycasting, to prevent raycasts from hitting buttons in other sectos
               dist = Infinity;
             } else {
               // get ssector on the other side of this segment
-/*
-              var blurf = this.getIntersections(translate(intersectionpoint, scalarMultiply(dir, .1)), dir, len - dist - .1);
-              if (blurf) {
-                intersections.push.apply(intersections, blurf);
-              }
-*/
-/*
               for (var j = 0; j < this.segs.length; j++) {
                 var flipseg = this.segs[j];
                 if (seg.linedef == flipseg.linedef && seg.side != flipseg.side) {
@@ -315,25 +321,26 @@ export class Map {
                   break;
                 }
               }
-*/
+              remaining -= dist;
             }
           }
           //break;
+          lastseg = seg;
         }
       }
       if (!hit) dist = Infinity;
-    //}
+    }
     return intersections;
   }
 
   /**
-   * Get the point at which the specified line crosses the specified segment
+   * Get the point at which the specified ray crosses the specified segment
    * @param {WadJS.Segment} seg - line segment
    * @param {Vertex} pos - x/y position
    * @param {Vertex} dir - x/y direction
    * @returns {Vertex|null} intersection point
    */
-  getIntersectionPoint(seg, pos, dir) {
+  getRayIntersectionPoint(seg, pos, dir) {
     var p = new WadJS.Vertex(pos.x, pos.y),
         q = this.getVertex(seg.v1),
         r = new WadJS.Vertex(dir.x, dir.y),
@@ -358,6 +365,75 @@ export class Map {
     return null;
   }
 
+  /**
+   * Get the linedef intersections of a sphere along the specified path
+   * Reference: http://ericleong.me/research/circle-line/#moving-circle-and-static-line-segment
+   * @param {Vertex} pos - x/y position
+   * @param {Vertex} dir - x/y direction
+   * @param {integer} radius - radius of sphere to check
+   * @returns {array} list of intersections
+   */
+  getSphereIntersections(pos, dir, radius) {
+    var intersections = [];
+    var ssector = this.getSubsectorAt(pos.x, pos.y);
+    var dist = 0;
+    var len = dir.length();
+    var remaining = len;
+    let nextpos = pos;
+    let lastseg = null;
+
+    //while (ssector && dist < len) {
+      var hit = false;
+      let scaleddir = dir.clone().multiplyScalar(remaining); // allocation
+      for (var i = 0; i < ssector.numsegs; i++) {
+        var seg = this.segs[ssector.firstseg + i];
+        // Skip the seg that refers to the linedef we just traversed
+        if (lastseg && lastseg.linedef == seg.linedef) continue;
+
+        var intersectionpoint = this.getSphereIntersectionPoint(seg, nextpos, scaleddir, radius);
+        if (intersectionpoint) {
+//console.log('got it', intersectionpoint);
+          intersections.push([seg, intersectionpoint, dist]);
+        }
+      }
+    //}
+    return intersections;
+  }
+
+  /**
+   * Get the point at which a moving sphere would make contact with the specified segment
+   */
+  getSphereIntersectionPoint(seg, circlestart, circlevel, radius) {
+    let segstart = this.getVertex(seg.v1),
+        segend = this.getVertex(seg.v2);
+    let p1 = this.getClosestPointOnLineSegment(segstart, segend, circlestart);
+    let a = this.getRayIntersectionPoint(seg, circlestart, circlevel.clone().multiplyScalar(1 + radius / circlevel.length() )); // allocation
+    if (a) {
+      let circleend = circlestart.clone().add(circlevel), // allocation
+          b = this.getClosestPointOnLineSegment(segstart, segend, circleend),
+          c = this.getClosestPointOnLineSegment(circlestart, circleend, segstart),
+          d = this.getClosestPointOnLineSegment(circlestart, circleend, segend);
+
+      if (b.distanceTo(circleend) < radius ||
+          c.distanceTo(segstart) < radius ||
+          d.distanceTo(segend) < radius) {
+        let p2 = a.sub(circlevel.multiplyScalar(radius * a.distanceTo(circlestart) / p1.distanceTo(circlestart) / circlevel.length()));
+        return p2;
+      }
+    }
+  }
+
+  getClosestPointOnLineSegment(start, end, point) {
+		let startP = new WadJS.Vertex().subVertex( point, start ), // allocation
+		    startEnd = new WadJS.Vertex().subVertex( end, start ); // allocation
+
+		let startEnd2 = startEnd.dot( startEnd ),
+		    startEnd_startP = startEnd.dot( startP );
+
+		var t = Math.max(0, Math.min(1, startEnd_startP / startEnd2));
+
+    return startEnd.multiplyScalar(t).add(start);
+  }
 
   /**
    * Get the specified entity from the specified list

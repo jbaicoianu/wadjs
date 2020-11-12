@@ -116,14 +116,16 @@ export function readInt32(data, offset) {
  * @param {integer} offset - read offset
  * @returns {integer} Uint32
  */
-export function readUint32(data, offset) {
+export function readUint32(data, offset, endian=true) {
   if (!(data instanceof ArrayBuffer)) {
     offset += data.byteOffset;
     data = data.buffer;
   }
 
-  var arr = new Uint32Array(data, offset, 1);
-  return arr[0];
+  //var arr = new Uint32Array(data, offset, 1);
+  //return arr[0];
+  let dv = new DataView(data);
+  return dv.getUint32(offset, endian);
 }
 /**
  * Read an array of signed 32-bit integer (int[])
@@ -138,7 +140,12 @@ export function readInt32Array(data, offset, count) {
     data = data.buffer;
   }
 
-  var arr = new Int32Array(data, offset, count);
+  //var arr = new Int32Array(data, offset, count);
+  let dv = new DataView(data);
+  var arr = new Int32Array(count);
+  for (let i = 0; i < count; i++) {
+    arr[i] = dv.getInt32(offset + i * 4, true);
+  }
   return arr;
 }
 /**
@@ -154,7 +161,12 @@ export function readUint32Array(data, offset, count) {
     data = data.buffer;
   }
 
-  var arr = new Uint32Array(data, offset, count);
+  //var arr = new Uint32Array(data, offset, count);
+  let dv = new DataView(data);
+  var arr = new Uint32Array(count);
+  for (let i = 0; i < count; i++) {
+    arr[i] = dv.getUint32(offset + i * 4, true);
+  }
   return arr;
 }
 /**

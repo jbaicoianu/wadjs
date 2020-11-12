@@ -74,11 +74,39 @@ export class Sector {
   }
 
   /**
-   * Get a lost of all sectors that touch this one
+   * Get a list of all sectors that touch this one
    * @returns {array} list of WadJS.Sector objects
    */
   getAdjacentSectors() {
     return this.map.getAdjacentSectors(this);
+  }
+  /**
+   * Get the height of the lowest neighboring ceiling
+   * @returns {int} ceiling height
+   */
+  findLowestCeilingSurrounding() {
+    let adjacent = this.getAdjacentSectors();
+    let height = Infinity;
+    for (var j = 0; j < adjacent.length; j++) {
+      if (adjacent[j].ceilingheight < height) {
+        height = adjacent[j].ceilingheight;
+      }
+    }
+    return height;
+  }
+  /**
+   * Get the height of the heighest neighboring floor
+   * @returns {int} floor height
+   */
+  findHighestFloorSurrounding() {
+    let adjacent = this.getAdjacentSectors();
+    let height = -Infinity;
+    for (var j = 0; j < adjacent.length; j++) {
+      if (adjacent[j].floorheight > height) {
+        height = adjacent[j].floorheight;
+      }
+    }
+    return height;
   }
 }
 
