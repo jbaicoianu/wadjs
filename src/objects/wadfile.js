@@ -47,9 +47,7 @@ export class WadFile {
       if (data instanceof Uint8Array) data = data.buffer;
       //console.log('Parsing...', data);
       var wadtype = WadJS.readUint32(data, offset);
-      if (wadtype == this.ids.IWAD) {
-        this.iwad = true;
-      }
+      this.iwad = (wadtype == this.ids.IWAD);
 
       var numlumps = WadJS.readUint32(data, offset + 4);
       var lumpoffsets = WadJS.readUint32(data, offset + 8);
