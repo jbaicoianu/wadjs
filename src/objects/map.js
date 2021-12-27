@@ -38,17 +38,14 @@ export class Map {
    * @param {string} name - map name
    */
   load(wad, name) {
-    var index = wad.lumpmap[name];
-    var lumps = wad.lumps;
-
-    this.readLump(this.things, lumps[index + 1], 'THINGS');
-    this.readLump(this.linedefs, lumps[index + 2], 'LINEDEFS');
-    this.readLump(this.sidedefs, lumps[index + 3], 'SIDEDEFS');
-    this.readLump(this.vertexes, lumps[index + 4], 'VERTEXES');
-    this.readLump(this.segs, lumps[index + 5], 'SEGS');
-    this.readLump(this.ssectors, lumps[index + 6], 'SSECTORS');
-    this.readLump(this.nodes, lumps[index + 7], 'NODES');
-    this.readLump(this.sectors, lumps[index + 8], 'SECTORS');
+    this.readLump(this.things, this.wad.getLump(name, 1), 'THINGS');
+    this.readLump(this.linedefs, this.wad.getLump(name, 2), 'LINEDEFS');
+    this.readLump(this.sidedefs, this.wad.getLump(name, 3), 'SIDEDEFS');
+    this.readLump(this.vertexes, this.wad.getLump(name, 4), 'VERTEXES');
+    this.readLump(this.segs, this.wad.getLump(name, 5), 'SEGS');
+    this.readLump(this.ssectors, this.wad.getLump(name, 6), 'SSECTORS');
+    this.readLump(this.nodes, this.wad.getLump(name, 7), 'NODES');
+    this.readLump(this.sectors, this.wad.getLump(name, 8), 'SECTORS');
 
     // TODO - read optional REJECT and BLOCKMAP lumps
   }
