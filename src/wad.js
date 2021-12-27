@@ -22,4 +22,5 @@ export * from './objects/texturelist.js';
 export * from './objects/thing.js';
 export * from './objects/vertex.js';
 export * from './objects/wadfile.js';
+export * from './objects/wadgroup.js';
 
