@@ -1,4 +1,5 @@
 export * from './binaryutils.js';
+export * from './mathutils.js';
 export * from './deice.js';
 
 export * from './objects/boundingbox.js';
