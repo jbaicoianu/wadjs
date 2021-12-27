@@ -199,13 +199,13 @@ export class WadFile {
    * Get all sprites included in this WAD file
    * @return {object} Map of Sprite objects, keyed by sprite name
    */
-  getSprites() {
+  getSprites(palette) {
     if (!this.sprites) {
       this.sprites = {};
 
-      var palette = this.getPalette(0);
+      if (!palette) palette = this.getPalette(0);
 
-      var start = this.lumpmap['S_START'],
+      var start = ('SS_START' in this.lumpmap ? this.lumpmap['SS_START'] : this.lumpmap['S_START']),
           end = this.lumpmap['S_END'],
           sprites = this.sprites;
       for (var i = start + 1; i < end - 1; i++) {
