@@ -15,8 +15,8 @@ export function readInt8(data, offset) {
     data = data.buffer;
   }
 
-  var arr = new Int8Array(data, offset, 1);
-  return arr[0];
+  let view = new DataView(data);
+  return view.getInt8(offset);
 }
 /**
  * Read an unsigned 8-bit integer (unsigned char)
@@ -30,8 +30,8 @@ export function readUint8(data, offset) {
     data = data.buffer;
   }
 
-  var arr = new Uint8Array(data, offset, 1);
-  return arr[0];
+  let view = new DataView(data);
+  return view.getUint8(offset);
 }
 /**
  * Read an array of unsigned 8-bit integers (unsigned char[])
@@ -61,8 +61,8 @@ export function readInt16(data, offset) {
     data = data.buffer;
   }
 
-  var arr = new Int16Array(data, offset, 1);
-  return arr[0];
+  let view = new DataView(data);
+  return view.getInt16(offset, true);
 }
 /**
  * Read a unsigned 16-bit integer (unsigned short)
@@ -76,8 +76,8 @@ export function readUint16(data, offset) {
     data = data.buffer;
   }
 
-  var arr = new Uint16Array(data, offset, 1);
-  return arr[0];
+  let view = new DataView(data);
+  return view.getUint16(offset, true);
 }
 /**
  * Read an array of unsigned 16-bit integers (unsigned short[])
@@ -107,8 +107,8 @@ export function readInt32(data, offset) {
     data = data.buffer;
   }
 
-  var arr = new Int32Array(data, offset, 1);
-  return arr[0];
+  let view = new DataView(data);
+  return view.getInt32(offset, true);
 }
 /**
  * Read an unsigned 32-bit integer (unsigned int)
@@ -122,10 +122,8 @@ export function readUint32(data, offset, endian=true) {
     data = data.buffer;
   }
 
-  //var arr = new Uint32Array(data, offset, 1);
-  //return arr[0];
-  let dv = new DataView(data);
-  return dv.getUint32(offset, endian);
+  let view = new DataView(data);
+  return view.getUint32(offset, endian);
 }
 /**
  * Read an array of signed 32-bit integer (int[])
@@ -140,7 +138,6 @@ export function readInt32Array(data, offset, count) {
     data = data.buffer;
   }
 
-  //var arr = new Int32Array(data, offset, count);
   let dv = new DataView(data);
   var arr = new Int32Array(count);
   for (let i = 0; i < count; i++) {
@@ -161,7 +158,6 @@ export function readUint32Array(data, offset, count) {
     data = data.buffer;
   }
 
-  //var arr = new Uint32Array(data, offset, count);
   let dv = new DataView(data);
   var arr = new Uint32Array(count);
   for (let i = 0; i < count; i++) {
