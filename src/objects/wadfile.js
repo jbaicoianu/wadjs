@@ -275,8 +275,8 @@ export class WadFile {
    * @param {string} lumpname - name of lump to retrieve
    * @return {WadJS.Lump} Lump object
    */
-  getLump(lumpname) {
-    return this.lumps[this.lumpmap[lumpname]];
+  getLump(lumpname, offset=0) {
+    return this.lumps[this.lumpmap[lumpname] + offset];
   }
 
   /**
