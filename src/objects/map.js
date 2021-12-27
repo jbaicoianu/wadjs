@@ -232,7 +232,7 @@ export class Map {
     var node = this.nodes[this.nodes.length - 1];
     var ssectorid, nextnodeid;
     while (node) {
-      var side = this.wad.pointDistanceFromLine(x, y, node.x, node.y, node.dx, node.dy)
+      var side = WadJS.pointDistanceFromLine(x, y, node.x, node.y, node.dx, node.dy)
       if (side < 0) {
         nextnodeid = node.rightChild;
       } else if (side >= 0) {
